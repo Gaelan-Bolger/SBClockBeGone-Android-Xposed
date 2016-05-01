@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Clock-B-Gone</string>
+    <string name="app_description">Hide the status bar clock based on current app.</string>
+</resources>
