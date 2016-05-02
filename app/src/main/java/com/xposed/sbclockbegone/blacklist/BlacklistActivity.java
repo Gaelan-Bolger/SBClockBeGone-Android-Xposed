@@ -71,22 +71,49 @@ public class BlacklistActivity extends AppCompatActivity implements AdapterView.
         switch (item.getItemId()) {
             case R.id.item_clear_selection:
                 new AlertDialog.Builder(this).setCancelable(true)
-                        .setTitle("Clear selection?")
+                        .setTitle(R.string.selection)
+                        .setItems(R.array.selection_items, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                List<String> allPackageNames;
+                                switch (which) {
+                                    case 0:
+                                        // Select all
+                                        allPackageNames = new ArrayList<>();
+                                        for (ApplicationInfo ai : getLauncherApps(getPackageManager())) {
+                                            allPackageNames.add(ai.packageName);
+                                        }
+                                        break;
+                                    case 1:
+                                        // Select inverse
+                                        allPackageNames = new ArrayList<>();
+                                        List<String> blacklist = Blacklist.get(BlacklistActivity.this);
+                                        for (ApplicationInfo ai : getLauncherApps(getPackageManager())) {
+                                            String packageName = ai.packageName;
+                                            if (!blacklist.contains(packageName)) {
+                                                allPackageNames.add(packageName);
+                                            }
+                                        }
+                                        break;
+                                    default:
+                                        // Select none
+                                        allPackageNames = null;
+                                        break;
+                                }
+                                Blacklist.set(BlacklistActivity.this, allPackageNames);
+                                mAdapter.notifyDataSetChanged();
+
+                                sendClockEventBroadcast(null == allPackageNames);
+                                dialog.dismiss();
+                            }
+                        })
                         .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
                             }
                         })
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Blacklist.set(BlacklistActivity.this, null);
-                                mAdapter.notifyDataSetChanged();
-                                sendClockEventBroadcast(true);
-                                dialog.dismiss();
-                            }
-                        }).create().show();
+                        .create().show();
                 return true;
             case R.id.item_view_source:
                 Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -106,7 +133,7 @@ public class BlacklistActivity extends AppCompatActivity implements AdapterView.
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.findItem(R.id.item_hide_icon).setChecked(mPrefs.getBoolean(PREF_HIDE_ICON, false));
-        menu.findItem(R.id.item_app_version).setTitle(String.format("v%s", BuildConfig.VERSION_NAME));
+        menu.findItem(R.id.item_app_version).setTitle(getString(R.string.version, BuildConfig.VERSION_NAME));
         return true;
     }
 
@@ -114,22 +141,20 @@ public class BlacklistActivity extends AppCompatActivity implements AdapterView.
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         ApplicationInfo item = mAdapter.getItem(position);
         String packageName = item.packageName;
-        boolean onBlacklist = Blacklist.contains(this, packageName);
-
-        if (getPackageName().equals(packageName)) {
-            sendClockEventBroadcast(onBlacklist);
-        }
-
-        if (onBlacklist)
+        if (Blacklist.contains(this, packageName))
             Blacklist.remove(this, packageName);
         else
             Blacklist.add(this, packageName);
         mAdapter.notifyDataSetChanged();
+
+        if (getPackageName().equals(packageName)) {
+            sendClockEventBroadcast(!Blacklist.contains(this, packageName));
+        }
     }
 
-    private void sendClockEventBroadcast(boolean onBlacklist) {
+    private void sendClockEventBroadcast(boolean showClock) {
         Intent intent = new Intent(Xposed.ACTION_CLOCK_EVENT);
-        intent.putExtra("showClock", onBlacklist);
+        intent.putExtra(Xposed.EXTRA_SHOW_CLOCK, showClock);
         sendBroadcast(intent);
     }
 

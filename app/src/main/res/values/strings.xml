@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">Clock-B-Gone</string>
-    <string name="app_description">Hide the status bar clock based on current app.</string>
+    <string name="app_description">Hide the status bar clock based on current app. Made for Pure Nexus ROM.</string>
+    <string name="selection">Selection</string>
+    <string name="select_all">Select all</string>
+    <string name="select_none">Select none</string>
+    <string name="select_inverse">Select inverse</string>
+    <string name="hide_launcher_icon">Hide launcher icon</string>
+    <string name="view_source">View source</string>
+    <string name="version">v%s</string>
 </resources>

@@ -29,6 +29,7 @@ public class Xposed implements IXposedHookLoadPackage {
     private static final String TAG = "SBClockBeGone";
     private static final String PACKAGE_NAME = Xposed.class.getPackage().getName();
     public static final String ACTION_CLOCK_EVENT = "com.xposed.sbclockbegone.action.CLOCK_EVENT";
+    public static final String EXTRA_SHOW_CLOCK = "showClock";
 
     public static final String PREFERENCES = "preferences";
 
@@ -52,16 +53,13 @@ public class Xposed implements IXposedHookLoadPackage {
                         UsageEvents.Event event = (UsageEvents.Event) param.args[0];
                         if (event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
                             String eventPackageName = event.getPackageName();
-                            Log.d(TAG, "MOVE_TO_FOREGROUND, " + eventPackageName);
 
                             mPrefs.reload();
                             Set<String> blacklist = mPrefs.getStringSet("blacklist", new HashSet<String>(0));
                             boolean hideClock = blacklist.contains(eventPackageName);
-                            Log.d(TAG, "set hide clock, " + hideClock);
 
-                            Log.d(TAG, "send broadcast ACTION_CLOCK_EVENT");
                             Intent intent = new Intent(ACTION_CLOCK_EVENT);
-                            intent.putExtra("showClock", !hideClock);
+                            intent.putExtra(EXTRA_SHOW_CLOCK, !hideClock);
                             Method getContext = param.thisObject.getClass().getMethod("getContext");
                             Context context = (Context) getContext.invoke(param.thisObject);
                             context.sendBroadcast(intent);
@@ -85,9 +83,8 @@ public class Xposed implements IXposedHookLoadPackage {
                             @Override
                             public void onReceive(Context context, Intent intent) {
                                 String action = intent.getAction();
-                                Log.d(TAG, "onReceive: action = " + action);
                                 if (ACTION_CLOCK_EVENT.equals(action)) {
-                                    boolean showClock = intent.getBooleanExtra("showClock", true);
+                                    boolean showClock = intent.getBooleanExtra(EXTRA_SHOW_CLOCK, true);
                                     XposedHelpers.setBooleanField(clockObject, "mShowClock", showClock);
                                     callMethod(clockObject, "updateClockVisibility");
                                 }
@@ -95,17 +92,16 @@ public class Xposed implements IXposedHookLoadPackage {
                         };
                         setAdditionalInstanceField(clockObject, "eventReceiver", eventReceiver);
                         ((TextView) clockObject).getContext().registerReceiver(eventReceiver, new IntentFilter(ACTION_CLOCK_EVENT));
-                        Log.d(TAG, "Event receiver registered");
                     }
                 });
                 findAndHookMethod(ClockClass, "onDetachedFromWindow", new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        Object o = getAdditionalInstanceField(param.thisObject, "eventReceiver");
-                        if (null != o && o instanceof BroadcastReceiver) {
-                            BroadcastReceiver eventReceiver = (BroadcastReceiver) o;
-                            ((TextView) param.thisObject).getContext().unregisterReceiver(eventReceiver);
-                            Log.d(TAG, "Event receiver unregistered");
+                        Object clockObject = param.thisObject;
+                        Object receiverObject = getAdditionalInstanceField(clockObject, "eventReceiver");
+                        if (null != receiverObject && receiverObject instanceof BroadcastReceiver) {
+                            BroadcastReceiver eventReceiver = (BroadcastReceiver) receiverObject;
+                            ((TextView) clockObject).getContext().unregisterReceiver(eventReceiver);
                         }
                     }
                 });

@@ -4,17 +4,17 @@
     <item
         android:id="@+id/item_clear_selection"
         android:icon="@drawable/ic_select_all_white_18dp"
-        android:title="Clear selection"
+        android:title="@string/selection"
         app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/item_hide_icon"
         android:checkable="true"
-        android:title="Hide launcher icon"/>
+        android:title="@string/hide_launcher_icon"/>
     <item
         android:id="@+id/item_view_source"
-        android:title="View software"/>
+        android:title="@string/view_source"/>
     <item
         android:id="@+id/item_app_version"
         android:enabled="false"
-        android:title="Version"/>
+        android:title="@string/version"/>
 </menu>
