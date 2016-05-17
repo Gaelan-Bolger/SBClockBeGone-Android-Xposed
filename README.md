@@ -3,7 +3,7 @@ SBClockBeGone
 
 Xposed module to hide status bar clock based on foreground application.
 
-Built for Pure Nexus ROM, may work with other ROMs using similar status bar clock implementations. See [here](https://github.com/PureNexusProject/android_frameworks_base/tree/mm/packages/SystemUI/src/com/android/systemui/statusbar/policy) for ROM source.
+Built for [Pure Nexus](https://github.com/PureNexusProject/android_frameworks_base/tree/mm/packages/SystemUI/src/com/android/systemui/statusbar/policy/Clock.java) and [CM13](https://github.com/CyanogenMod/android_frameworks_base/tree/cm-13.0/packages/SystemUI/src/com/android/systemui/statusbar/phone/ClockController.java), may work with other ROMs using similar status bar clock implementations.
 
 
 License
